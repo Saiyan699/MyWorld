@@ -45,6 +45,9 @@ Ovaj Discord bot je svestrani alat za upravljanje serverom sa funkcijama kao št
 Bot koristi `.env` fajl za sigurnosno čuvanje tokena. 
 Glavne postavke se nalaze u `index.js` u kodu:
 
+```.env
+TOKEN=tvoj token
+
 ```index.js
 const config = {
   logChannelId: 'ID kanala za logove',
