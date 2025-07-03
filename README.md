@@ -1,69 +1,59 @@
-# Discord Bot - KodSaketa
+# KodSaketa Discord Bot
 
-## 📝 Opis Bota
+## 📌 Osnovne informacije
+- Platforma: Discord.js (Node.js)
+- Namjena: Upravljanje serverom sa naprednim funkcionalnostima
+- Glavne karakteristike: Leveling sistem, zaštita od spam linkova, automatski odgovori, dobrodošlice, upravljanje glasovnim kanalima
 
-Ovaj Discord bot je svestrani alat za upravljanje serverom sa funkcijama kao što su leveling sistem, automatski odgovori, zaštita od linkova, dobrodošlice za nove članove, upravljanje glasovnim kanalima i još mnogo toga. Bot je napisan u Node.js koristeći `discord.js` biblioteku.
+## 🔧 Instalacija i pokretanje
+1. Potrebni paketi:
+   - Node.js (v16+)
+   - npm install discord.js dotenv
 
-## 🌟 Glavne Funkcije
+2. Konfiguracija:
+   - Kreirajte .env fajl sa TOKEN='your-bot-token'
+   - Uredite config objekat u index.js sa pravim ID-ima kanala
 
-### 1. **Leveling Sistem**
-   - Korisnici dobijaju XP za svaku poslanu poruku
-   - Level-up notifikacije sa posebnim porukama za određene nivoe
-   - Komande `!stats` i `!top` za praćenje napretka
-   - Admin komanda `!resetlevel` za resetovanje levela korisnika
+3. Pokretanje:
+   - node index.js
 
-### 2. **Autoresponder**
-   - Automatski odgovori na ključne reči (npr. "hello", "help", "invite")
-   - Podrška za delimično podudaranje (npr. "hvala" će odgovoriti na "thx", "thanks")
-   - Nasumični odgovori za određene upite
-   - Cooldown sistem da spriječi spam
+## ✨ Funkcionalnosti
 
-### 3. **Link Protekcija**
-   - Blokira sve linkove osim onih sa dozvoljenih domena
-   - Posebne role koje mogu zaobići zaštitu
-   - Detekcija linkova dodanih kroz uređivanje poruka
-   - Logovanje obrisanih poruka sa linkovima
+### 🎚️ Leveling Sistem
+- Dodeljuje XP za aktivnost
+- Level-up notifikacije
+- Komande:
+  - !stats - Prikaz vašeg nivoa
+  - !top - Top lista korisnika
+  - !resetlevel [@user] (samo admin)
 
-### 4. **Dobrodošlica za Nove Članove**
-   - Automatsko dodjeljivanje role novim članovima
-   - Personalizovana welcome poruka sa brojem člana
-   - Uputstvo ka pravilima servera
+### 🛡️ Link Zaštita
+- Blokira sve linkove osim dozvoljenih domena
+- Dozvoljeni linkovi: youtube.com, discord.gg
+- Role koje zaobilaze zaštitu: 👑 | �ᴏᴡɴᴇʀ, LinkProtection
 
-### 5. **Privremeni Glasovni Kanali**
-   - Automatsko kreiranje privremenih glasovnih kanala
-   - Brisanje praznih kanala nakon 30 sekundi
-   - Custom imena kanala bazirana na korisniku
-   - Prava upravljanja za kreatora kanala
+### 🤖 Automatski Odgovori
+Odgovara na ključne reči:
+- livesake → YouTube link
+- ping → pong
+- hello, bok → Pozdravni odgovori
+- pravila → Uputstvo ka pravilima
+- help → Pomoć za komande
 
-### 6. **Dodatne Funkcije**
-   - Automatsko ažuriranje broja članova u imenu glasovnog kanala
-   - Periodični podsjetnici za renew servera (svaka 3 dana)
-   - Logovanje svih važnih akcija u poseban kanal
+### 👋 Dobrodošlice
+- Automatska dodela role novim članovima
+- Personalizovana welcome poruka
+- Brojanje članova
 
-## ⚙️ Konfiguracija
+### 🔊 Glasovni Kanali
+- Automatsko kreiranje privremenih kanala
+- Brisanje nakon 30 sekundi neaktivnosti
+- Prava upravljanja za kreatora
 
-Bot koristi `.env` fajl za sigurnosno čuvanje tokena. 
-Glavne postavke se nalaze u `index.js` u kodu:
-```
-.env
-TOKEN=tvoj token
+### 📊 Statistike
+- Ažuriranje broja članova u nazivu kanala
+- Logovanje svih važnih akcija
 
-index.js
-const config = {
-  logChannelId: 'ID kanala za logove',
-  renewChannelId: 'ID kanala za renew podsjetnike',
-  voiceChannelId: 'ID glasovnog kanala za brojanje članova',
-  leveling: { ... },
-  autoresponder: { ... },
-  welcome: {
-    channelId: 'ID welcome kanala',
-    rulesChannelId: 'ID kanala sa pravilima',
-    autoRoleId: 'ID role za nove članove'
-  },
-  voice: {
-    createChannelName: 'Hub - Udji ovde',
-    deleteAfter: 30000
-  },
-  allowedDomains: ['youtube.com', 'discord.gg', 'trusted-domain.com'],
-  bypassRoles: ['👑 | ᴏᴡɴᴇʀ', 'LinkProtection', 'Sake']
-};
+## ⚠️ AI + HOST Napomene
+- Sve je radito uz pomoc AI
+- Mozete koristit Free Hostigne Replit,OptikLink,KataBump...
