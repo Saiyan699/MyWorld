@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, Partials, EmbedBuilder } = require('discord.js');
+const spamTracker = new Map();
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -11,24 +12,19 @@ const client = new Client({
   partials: [Partials.Channel]
 });
 
-//OVO TI NE TREBA
-//const express = require('express');
-//const app = express();
-//const port = process.env.PORT || 3000;
-//const htmlContent = require('./html.js');
-//app.get('/', (req, res) => {
-//  res.send(htmlContent);
-//});
 
-// Konfiguracija
+// Konfiguracija //sve prebaceno u .env
 const config = {
-  logChannelId: 'OVDE ID KANAL ZA LOGOVE',
-  renewChannelId: 'OVDE ID ZA RENEW - KATABUMP',
-  voiceChannelId: 'OVDE ID VOICE KANAL - ZA COUNT MEMBERA',
+  logChannelId: process.env.LOG_CHANNEL_ID,
+  renewChannelId: process.env.PODSJETNIK_CHANNEL_ID,
+  voiceChannelId: process.env.VOICE_CHANNEL_ID,
   leveling: {
-    xpPerMessage: { min: 5, max: 15 },
-    xpNeededMultiplier: 100,
-    cooldown: 60,
+    xpPerMessage: { 
+      min: parseInt(process.env.XP_PER_MESSAGE_MIN), 
+      max: parseInt(process.env.XP_PER_MESSAGE_MAX) 
+    },
+    xpNeededMultiplier: parseInt(process.env.XP_NEEDED_MULTIPLIER),
+    cooldown: parseInt(process.env.LEVELING_COOLDOWN),
     levelUpMessages: {
       5: "🎉 Bravo! Dostigli ste level 5!",
       10: "🔥 Wow, već level 10!",
@@ -37,20 +33,20 @@ const config = {
     }
   },
   autoresponder: {
-    cooldown: 3
+    cooldown: parseInt(process.env.AUTORESPONDER_COOLDOWN),
+    ignoredChannels: (process.env.AUTORESPONDER_IGNORED_CHANNELS || "").split(',')
   },
   welcome: {
-    channelId: 'OVDE ID WLECOME KANALA',
-    rulesChannelId: 'OVDE ID KANALA ZA PRAVILA',
-    autoRoleId: 'OVDE ID ROLL KADA NEKO UDJE DA DOBIJE' 
+    channelId: process.env.WELCOME_CHANNEL_ID,
+    rulesChannelId: process.env.RULES_CHANNEL_ID,
+    autoRoleId: process.env.AUTO_ROLE_ID 
   },
   voice: {
-    createChannelName: 'Hub - Udji ovde',
-    deleteAfter: 30 * 1000 // 30 sekundi
+    createChannelName: process.env.CREATE_CHANNEL_NAME,
+    deleteAfter: parseInt(process.env.DELETE_AFTER)
   },
-  // DODANO: Link protekcija
-  allowedDomains: ['youtube.com', 'discord.gg', 'trusted-domain.com'], // Dodajte dozvoljene domene
-  bypassRoles: ['👑 | ᴏᴡɴᴇʀ', 'LinkProtection', 'Sake'] // Role koje mogu slati linkove
+  allowedDomains: process.env.ALLOWED_DOMAINS.split(','),
+  bypassRoles: process.env.BYPASS_ROLES.split(',')
 };
 
 // Baza podataka
@@ -64,11 +60,60 @@ const cooldowns = {
 client.once('ready', () => {
   console.log(`Bot je online ${client.user.tag}`);
   client.user.setPresence({
-    activities: [{ name: '!help', type: 'WATCHING' }],  //OVO BAR MENI NE RADI IZ NEKOG RAZLOGA
+    activities: [{ name: '!help', type: 'WATCHING' }],
     status: 'online'
   });
   updateVoiceChannelMemberCount();
   setInterval(updateVoiceChannelMemberCount, 5 * 60 * 1000);
+});
+
+
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+
+  // Provjeri da li korisnik ima rolu koja zaobilazi spam filter
+  const hasBypassRole = message.member?.roles.cache.some(role => 
+    config.bypassRoles.includes(role.name)
+  );
+
+  // Nastavi sa spam detekcijom
+  const userId = message.author.id;
+  const currentMessage = message.content.trim();
+
+  if (!spamTracker.has(userId)) {
+    spamTracker.set(userId, { lastMessage: currentMessage, count: 1 });
+    return;
+  }
+
+  const userData = spamTracker.get(userId);
+
+  if (currentMessage === userData.lastMessage) {
+    userData.count++;
+    spamTracker.set(userId, userData);
+  } else {
+    spamTracker.set(userId, { lastMessage: currentMessage, count: 1 });
+    return;
+  }
+
+  if (userData.count >= 3) {
+    try {
+      await message.delete();
+      const warning = await message.channel.send(
+        `${message.author}, **zabranjeno je spamovanje!** 🚨`
+      );
+      setTimeout(() => warning.delete(), 5000);
+      spamTracker.delete(userId);
+
+      // Loguj u kanal
+      await sendToLog(message.guild, 'SPAM DETEKCIJA', message.author, {
+        "Poruka": currentMessage,
+        "Ponavljanja": userData.count,
+        "Kanal": message.channel.name
+      });
+    } catch (error) {
+      console.error("Greška pri kažnjavanju spama:", error);
+    }
+  }
 });
 
 // Pokretanje periodične poruke za renew server
@@ -76,10 +121,10 @@ setInterval(async () => {
   const channel = client.channels.cache.get(config.renewChannelId);
   if (!channel) return console.error('❌ Renew kanal nije pronađen!');
 
-  const embed = new EmbedBuilder()
+const embed = new EmbedBuilder()
     .setColor('#ff9900')
     .setTitle('⏰ PODSJETNIK ZA RENEW')
-    .setDescription('HEJ! Moraš renew server da ne istekne:\n[Klikni ovdje za renew](OVDE LINK OD KATABUMP ZA RENEW)')  //AKO NE KORISTIS KATABUMP HOST OVO OBRISI
+    .setDescription(`HEJ! Moraš renew server da ne istekne:\n[Klikni ovdje za renew](${process.env.PODSJETNIK})`)
     .setFooter({ text: 'KodSaketa | KataBump podsjetnik' })
     .setTimestamp();
 
@@ -89,7 +134,7 @@ setInterval(async () => {
   } catch (err) {
     console.error('❌ Greška pri slanju podsjetnika:', err);
   }
-}, 3 * 24 * 60 * 60 * 1000); // svaka 3 dana u milisekundama
+}, 3 * 24 * 60 * 60 * 1000); // 3 dana u milisekundama
 
 // Dodajte novi event handler za uređivanje poruka
 client.on('messageUpdate', async (oldMessage, newMessage) => {
@@ -258,8 +303,10 @@ const autoresponses = {
 
 client.on('messageCreate', async message => {
   if (message.author.bot) return;
+  if (config.autoresponder.ignoredChannels.includes(message.channel.id)) {
+    return; 
+  }
   const content = message.content.toLowerCase().trim();
-
   // Autoresponder
   if (!cooldowns.responses[message.author.id] || Date.now() > cooldowns.responses[message.author.id]) {
     if (autoresponses[content]) {
@@ -398,8 +445,8 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         type: 2,
         parent: channel.parent,
         permissionOverwrites: [
-          { id: newState.member.id, allow: ['Connect', 'ManageChannels'] },
-          { id: guild.roles.everyone.id, deny: ['Connect'] }
+    //      { id: newState.member.id, allow: ['Connect', 'ManageChannels'] },
+    //      { id: guild.roles.everyone.id, deny: ['Connect'] }
         ],
       });
 
@@ -428,11 +475,6 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     }
   }
 });
-
-//OVO TI NE TREBA
-//app.listen(port, () => {
-//  console.log(`Web server je pokrenut na portu ${port}`);
-//});
 
 
 client.on('guildMemberAdd', () => {

@@ -1,0 +1,33 @@
+#OVAJ FILE CFG MORA DA SE ZOVE .env
+
+TOKEN=OVDE TVOJ TOKEN
+
+# Discord Kanali - Ovde idu IDovi
+LOG_CHANNEL_ID=
+VOICE_CHANNEL_ID=
+WELCOME_CHANNEL_ID=
+RULES_CHANNEL_ID=Ovde je Roll ID
+AUTO_ROLE_ID=
+
+# Leveling Sistem
+XP_PER_MESSAGE_MIN=5
+XP_PER_MESSAGE_MAX=15
+XP_NEEDED_MULTIPLIER=100
+LEVELING_COOLDOWN=60
+
+# Autoresponder
+AUTORESPONDER_COOLDOWN=3
+
+# Voice Modul #Ako Oces nazvat drugacije kanal promeni ovde
+CREATE_CHANNEL_NAME=Hub - Udji ovde
+DELETE_AFTER=30000
+
+# Link protekcija
+ALLOWED_DOMAINS=youtube.com,discord.gg,trusted-domain.com
+BYPASS_ROLES=Ovde Ime Rola (Ne ID Rola),Dodaj Zarez Za Vise,Rolova
+
+# Za KataBump Host
+PODSJETNIK=https://mywolrd.com
+
+# IGNORE AUTORESPONDER
+AUTORESPONDER_IGNORED_CHANNELS=ID1,ID2
