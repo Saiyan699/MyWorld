@@ -69,6 +69,6 @@
 - Ažuriranje broja članova u nazivu kanala
 - Logovanje svih važnih akcija
 
-## ⚠️ AI + HOST Napomene
+## ⚠️ AI + HOST
 - Sve je radito uz pomoc AI
 - Mozete koristit Free Hostigne Replit, OptikLink, KataBump...
