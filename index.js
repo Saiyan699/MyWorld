@@ -60,7 +60,16 @@ const cooldowns = {
 
 /// 1. POKRETANJE BOTA
 client.once('ready', () => {
+  version.printASCII();
+  version.checkUpdates()
+    .then(update => {
+      console.log(`➤ Trenutna verzija: ${version.current}`);
+      if (update.latest && update.latest !== version.current) {
+        console.log('\x1b[33m%s\x1b[0m', `⚠️ Dostupno ažuriranje: ${update.url}`);
+      }
+    });
   console.log(`✅ Bot online: ${client.user.tag}`);
+  liveNotifier.init(client);
   client.user.setPresence({
     activities: [{
       name: '!komande',
@@ -69,8 +78,9 @@ client.once('ready', () => {
     status: 'online'
   });
   updateVoiceChannelMemberCount();
-  setInterval(updateVoiceChannelMemberCount, 30 * 60 * 1000);
+  setInterval(updateVoiceChannelMemberCount, 30 * 60 * 1000); // Svakih 30 minuta
 });
+
 
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
