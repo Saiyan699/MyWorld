@@ -49,6 +49,8 @@ const config = {
   bypassRoles: process.env.BYPASS_ROLES.split(',')
 };
 
+//CHECKVERSION
+const version = require('./version');
 // Baza podataka
 const leveling = {};
 const cooldowns = {
