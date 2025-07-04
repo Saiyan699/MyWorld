@@ -81,7 +81,7 @@ client.once('ready', async () => {
   liveNotifier.init(client);
   client.user.setPresence({
     activities: [{
-      name: `v${version.current} | !komande`,
+      name: `!komande`,
       type: ActivityType.Watching
     }],
     status: 'online'
