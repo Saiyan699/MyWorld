@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Partials, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Partials, EmbedBuilder, ActivityType } = require('discord.js');
 const spamTracker = new Map();
 const client = new Client({
   intents: [
@@ -57,16 +57,19 @@ const cooldowns = {
 };
 
 /// 1. POKRETANJE BOTA
+/// 1. POKRETANJE BOTA
 client.once('ready', () => {
-  console.log(`Bot je online ${client.user.tag}`);
+  console.log(`✅ Bot online: ${client.user.tag}`);
   client.user.setPresence({
-    activities: [{ name: '!help', type: 'WATCHING' }],
+    activities: [{
+      name: '!komande',
+      type: ActivityType.Watching
+    }],
     status: 'online'
   });
   updateVoiceChannelMemberCount();
   setInterval(updateVoiceChannelMemberCount, 5 * 60 * 1000);
 });
-
 
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
