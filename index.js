@@ -16,7 +16,7 @@ const client = new Client({
 // Konfiguracija //sve prebaceno u .env
 const config = {
   logChannelId: process.env.LOG_CHANNEL_ID,
-  renewChannelId: process.env.PODSJETNIK_CHANNEL_ID,
+//  renewChannelId: process.env.PODSJETNIK_CHANNEL_ID, //AKO NE TI NE TREBA NE KORISTI (OBRISI)
   voiceChannelId: process.env.VOICE_CHANNEL_ID,
   leveling: {
     xpPerMessage: { 
@@ -146,7 +146,8 @@ client.on('messageCreate', async (message) => {
   }
 });
 
-// Pokretanje periodične poruke za renew server
+// Pokretanje periodične poruke za renew server //AKO NE TI NE TREBA NE KORISTI (OBRISI)
+/* //ako ti treba obrisi ovo
 setInterval(async () => {
   const channel = client.channels.cache.get(config.renewChannelId);
   if (!channel) return console.error('❌ Renew kanal nije pronađen!');
@@ -165,7 +166,7 @@ const embed = new EmbedBuilder()
     console.error('❌ Greška pri slanju podsjetnika:', err);
   }
 }, 3 * 24 * 60 * 60 * 1000); // 3 dana u milisekundama
-
+*/ //ako ti treba obrisi ovo
 // Dodajte novi event handler za uređivanje poruka
 client.on('messageUpdate', async (oldMessage, newMessage) => {
   if (newMessage.author.bot) return;
