@@ -26,8 +26,5 @@ DELETE_AFTER=30000
 ALLOWED_DOMAINS=youtube.com,discord.gg,trusted-domain.com
 BYPASS_ROLES=Ovde Ime Rola (Ne ID Rola),Dodaj Zarez Za Vise,Rolova
 
-# Za KataBump Host
-PODSJETNIK=https://mywolrd.com
-
 # IGNORE AUTORESPONDER
 AUTORESPONDER_IGNORED_CHANNELS=ID1,ID2
