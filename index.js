@@ -59,26 +59,42 @@ const cooldowns = {
 };
 
 /// 1. POKRETANJE BOTA
-client.once('ready', () => {
+client.once('ready', async () => {
   version.printASCII();
-  version.checkUpdates()
-    .then(update => {
+  try {
+    const update = await version.checkUpdates(client);
+    
+    if (update) {
       console.log(`➤ Trenutna verzija: ${version.current}`);
       if (update.latest && update.latest !== version.current) {
         console.log('\x1b[33m%s\x1b[0m', `⚠️ Dostupno ažuriranje: ${update.url}`);
+      } else {
+        console.log('\x1b[32m%s\x1b[0m', '✅ Bot je ažuriran');
       }
-    });
+    } else {
+      console.log('\x1b[36m%s\x1b[0m', 'ℹ️ Nema GitHub release-a ili greška pri provjeri');
+    }
+  } catch (error) {
+    console.error('\x1b[31m%s\x1b[0m', '❌ Greška pri provjeri verzije:', error.message);
+  }
   console.log(`✅ Bot online: ${client.user.tag}`);
   liveNotifier.init(client);
   client.user.setPresence({
     activities: [{
-      name: '!komande',
+      name: `v${version.current} | !komande`,
       type: ActivityType.Watching
     }],
     status: 'online'
   });
   updateVoiceChannelMemberCount();
-  setInterval(updateVoiceChannelMemberCount, 30 * 60 * 1000); // Svakih 30 minuta
+  setInterval(updateVoiceChannelMemberCount, 30 * 60 * 1000);
+  setInterval(async () => {
+    try {
+      await version.checkUpdates(client);
+    } catch (error) {
+      console.error('Greška pri periodičnoj provjeri:', error);
+    }
+  }, 24 * 60 * 60 * 1000);
 });
 
 
