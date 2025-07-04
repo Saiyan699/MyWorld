@@ -57,7 +57,6 @@ const cooldowns = {
 };
 
 /// 1. POKRETANJE BOTA
-/// 1. POKRETANJE BOTA
 client.once('ready', () => {
   console.log(`✅ Bot online: ${client.user.tag}`);
   client.user.setPresence({
@@ -68,7 +67,7 @@ client.once('ready', () => {
     status: 'online'
   });
   updateVoiceChannelMemberCount();
-  setInterval(updateVoiceChannelMemberCount, 5 * 60 * 1000);
+  setInterval(updateVoiceChannelMemberCount, 30 * 60 * 1000);
 });
 
 client.on('messageCreate', async (message) => {
