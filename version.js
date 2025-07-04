@@ -17,7 +17,8 @@ module.exports = {
 
             // Obrada odgovora
             if (response.status === 404) {
-                console.log('ℹ️ Repozitorij nije pronađen ili nema release-a');
+                //IZBJEGAVANJE SPAMA - AKO NEKIM SLUCAJEM IZBRISEM VERZIJU S GITHUBA (SAMO HOST CONSOLE LOG)
+                //console.log('ℹ️ Repozitorij nije pronađen ili nema release-a');
                 return null;
             }
 
@@ -51,7 +52,8 @@ module.exports = {
             };
 
         } catch (error) {
-            //console.error('⚠️ Greška dostupna su ažuriranja:', error.message); //ISKLJUCENO ZBOG SPAMA
+			//IZBJEGAVANJE SPAMA - UKOLIKO IZBACIM NOVU VERZIJU A VAZ BOJ JE ONLINE (SAMO HOST CONSOLE LOG)
+            //console.error('⚠️ Greška dostupna su ažuriranja:', error.message);
             return null;
         }
     },
