@@ -79,7 +79,6 @@ client.once('ready', async () => {
     console.error('\x1b[31m%s\x1b[0m', '❌ Greška pri provjeri verzije:', error.message);
   }
   console.log(`✅ Bot online: ${client.user.tag}`);
-  liveNotifier.init(client);
   client.user.setPresence({
     activities: [{
       name: `!komande`,
