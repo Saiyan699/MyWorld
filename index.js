@@ -48,6 +48,8 @@ const config = {
   bypassRoles: process.env.BYPASS_ROLES.split(',')
 };
 
+//AI CHAT
+const groq = require('./groq');
 //CHECKVERSION
 const version = require('./version');
 // Baza podataka
@@ -94,6 +96,28 @@ client.once('ready', async () => {
       console.error('Greška pri periodičnoj provjeri:', error);
     }
   }, 24 * 60 * 60 * 1000);
+});
+
+
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+
+  // !ai komanda
+  if (message.content.startsWith('!ai')) {
+    if (message.content.trim() === '!ai') {
+      return message.reply('🤖 Upiši pitanje nakon komande, npr: `!ai Kako radi Groq?`');
+    }
+    const prompt = message.content.slice(4).trim();
+    const thinkingMsg = await message.reply("🤖 AI razmišlja...");
+    
+    try {
+      const response = await groq.getResponse(prompt);
+      await thinkingMsg.edit(response.slice(0, 2000));
+    } catch (error) {
+      console.error(error);
+      await thinkingMsg.edit("❌ Došlo je do greške. Pokušaj ponovo.");
+    }
+  }
 });
 
 
