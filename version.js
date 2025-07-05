@@ -3,7 +3,7 @@ const fetch = require('node-fetch');
 const { ActivityType } = require('discord.js');
 
 module.exports = {
-    current: '1.0.0', // Postavite trenutnu verziju bota
+    current: '2.0.0', // Postavite trenutnu verziju bota
     githubRepo: 'Saiyan699/MyWorld', // Zamijenite sa svojim repozitorijumom
     lastCheckedVersion: null,
 
