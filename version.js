@@ -3,8 +3,8 @@ const fetch = require('node-fetch');
 const { ActivityType } = require('discord.js');
 
 module.exports = {
-    current: '2.0.0', // Postavite trenutnu verziju bota
-    githubRepo: 'Saiyan699/MyWorld', // Zamijenite sa svojim repozitorijumom
+    current: '2.1.0', // Postavite trenutnu verziju bota
+    githubRepo: 'Saiyan699/MyWorld',
     lastCheckedVersion: null,
 
     async checkUpdates(client) {
@@ -52,7 +52,7 @@ module.exports = {
             };
 
         } catch (error) {
-			//IZBJEGAVANJE SPAMA - UKOLIKO IZBACIM NOVU VERZIJU A VAZ BOJ JE ONLINE (SAMO HOST CONSOLE LOG)
+			//IZBJEGAVANJE SPAMA - UKOLIKO IZBACIM NOVU VERZIJU A VAS BOT JE ONLINE (SAMO HOST CONSOLE LOG)
             //console.error('⚠️ Greška dostupna su ažuriranja:', error.message);
             return null;
         }
