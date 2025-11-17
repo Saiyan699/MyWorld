@@ -48,8 +48,6 @@ const config = {
   bypassRoles: process.env.BYPASS_ROLES.split(',')
 };
 
-//AI CHAT
-const groq = require('./groq');
 //CHECKVERSION
 const version = require('./version');
 // Baza podataka
@@ -114,7 +112,7 @@ client.on('messageCreate', async (message) => {
       await thinkingMsg.edit(response.slice(0, 2000));
     } catch (error) {
       console.error(error);
-      await thinkingMsg.edit("❌ Došlo je do greške. Pokušaj ponovo.");
+      await thinkingMsg.edit("❌ Groq je izbacen trenutno je ne postoji free key za Groq.");
     }
   }
 });
