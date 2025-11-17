@@ -11,17 +11,9 @@
    - npm install discord.js dotenv
 
 2. Konfiguracija:
-   - Kreirajte .env fajl sa sledećim varijablama:
-     ```
-     TOKEN='your-bot-token'
-     CHANNEL_ID='your-channel-id'  # ID glavnog kanala
-     WELCOME_CHANNEL_ID='welcome-channel-id'
-     LOG_CHANNEL_ID='log-channel-id'
-     VOICE_CATEGORY_ID='voice-category-id'
-     IGNORE_CHANNEL_ID='ignore-channel-id'  # Kanali gdje responder ne radi
-     SPAM_LIMIT=3  # Broj poruka za spam detekciju
-     SPAM_INTERVAL=5000  # Vremenski interval u ms (npr. 5000 = 5 sekundi)
-     ```
+   - Pronadji file 'cfg' otovri ga u Text dokumentu
+   - Podesi svoj 'cfg' token,kanala idove i rolove
+   - JAKO VAZAN DEO - promeni naziv fajla 'cfg' > '.env'
 
 3. Pokretanje:
    - node index.js
