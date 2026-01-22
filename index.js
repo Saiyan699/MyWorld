@@ -1,6 +1,10 @@
 require('dotenv').config();
+
 const { Client, GatewayIntentBits, Partials, EmbedBuilder, ActivityType } = require('discord.js');
+const Groq = require("groq-sdk");
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const spamTracker = new Map();
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -48,8 +52,6 @@ const config = {
   bypassRoles: process.env.BYPASS_ROLES.split(',')
 };
 
-//CHECKVERSION
-const version = require('./version');
 // Baza podataka
 const leveling = {};
 const cooldowns = {
@@ -57,62 +59,53 @@ const cooldowns = {
   responses: {}
 };
 
-/// 1. POKRETANJE BOTA
-client.once('ready', async () => {
-  version.printASCII();
-  try {
-    const update = await version.checkUpdates(client);
-    
-    if (update) {
-      console.log(`➤ Trenutna verzija: ${version.current}`);
-      if (update.latest && update.latest !== version.current) {
-        console.log('\x1b[33m%s\x1b[0m', `⚠️ Dostupno ažuriranje: ${update.url}`);
-      } else {
-        console.log('\x1b[32m%s\x1b[0m', '✅ Bot je ažuriran');
-      }
-    } else {
-      console.log('\x1b[36m%s\x1b[0m', 'ℹ️ Nema GitHub release-a ili greška pri provjeri');
-    }
-  } catch (error) {
-    console.error('\x1b[31m%s\x1b[0m', '❌ Greška pri provjeri verzije:', error.message);
-  }
-  console.log(`✅ Bot online: ${client.user.tag}`);
-  client.user.setPresence({
-    activities: [{
-      name: `!komande`,
-      type: ActivityType.Watching
-    }],
-    status: 'online'
-  });
-  updateVoiceChannelMemberCount();
-  setInterval(updateVoiceChannelMemberCount, 30 * 60 * 1000);
-  setInterval(async () => {
-    try {
-      await version.checkUpdates(client);
-    } catch (error) {
-      console.error('Greška pri periodičnoj provjeri:', error);
-    }
-  }, 24 * 60 * 60 * 1000);
-});
-
 
 client.on('messageCreate', async (message) => {
-  if (message.author.bot) return;
+  // Ignoriši botove i poruke bez teksta
+  if (message.author.bot || !message.content) return;
 
-  // !ai komanda
-  if (message.content.startsWith('!ai')) {
-    if (message.content.trim() === '!ai') {
-      return message.reply('🤖 Upiši pitanje nakon komande, npr: `!ai Kako radi Groq?`');
-    }
-    const prompt = message.content.slice(4).trim();
-    const thinkingMsg = await message.reply("🤖 AI razmišlja...");
+  // Provjera da li je bot tagovan
+  if (message.mentions.has(client.user) && !message.mentions.everyone) {
     
+    // Čistimo poruku od taga bota da AI dobije samo pitanje
+    const prompt = message.content.replace(/<@!?\d+>/g, '').trim();
+
+    if (!prompt) return message.reply("Reci, kako ti mogu pomoći? 🤖");
+
     try {
-      const response = await groq.getResponse(prompt);
-      await thinkingMsg.edit(response.slice(0, 2000));
+      // Pokaži da bot "kuca"
+      await message.channel.sendTyping();
+
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          { 
+            role: "system", 
+            content: "Ti si koristan Discord asistent koji priča na našem jeziku." 
+          },
+          { 
+            role: "user", 
+            content: prompt 
+          }
+        ],
+        model: "llama-3.3-70b-versatile", // Ovo je trenutno njihov najbolji model
+      });
+
+      const response = chatCompletion.choices[0]?.message?.content;
+      
+      if (!response) {
+        return message.reply("Nažalost, trenutno ne mogu da generišem odgovor.");
+      }
+
+      // Discord limit od 2000 karaktera
+      if (response.length > 2000) {
+        return message.reply(response.substring(0, 1900) + "...");
+      }
+
+      await message.reply(response);
+
     } catch (error) {
-      console.error(error);
-      await thinkingMsg.edit("❌ Groq je izbacen trenutno je ne postoji free key za Groq.");
+      console.error("Groq AI Greška:", error);
+      message.reply("Ups! Došlo je do greške u komunikaciji sa mojim mozgom. 🧠❌");
     }
   }
 });
@@ -125,38 +118,62 @@ client.on('messageCreate', async (message) => {
   const hasBypassRole = message.member?.roles.cache.some(role => 
     config.bypassRoles.includes(role.name)
   );
+  if (hasBypassRole) return;
 
-  // Nastavi sa spam detekcijom
   const userId = message.author.id;
   const currentMessage = message.content.trim();
+  
+  // Dohvaćamo ID prve slike ako postoji (ID je bolji od URL-a jer je trajan)
+  const currentAttachmentId = message.attachments.first() ? message.attachments.first().id : null;
+
+  // Ako poruka nema ni teksta ni slike, ignoriraj (npr. sistemske poruke)
+  if (!currentMessage && !currentAttachmentId) return;
 
   if (!spamTracker.has(userId)) {
-    spamTracker.set(userId, { lastMessage: currentMessage, count: 1 });
+    spamTracker.set(userId, { 
+      lastMessage: currentMessage, 
+      lastAttachment: currentAttachmentId, 
+      count: 1 
+    });
     return;
   }
 
   const userData = spamTracker.get(userId);
 
-  if (currentMessage === userData.lastMessage) {
+  // LOGIKA PROVJERE: Da li je tekst isti ILI je slika ista kao prethodna?
+  const isTextSpam = (currentMessage !== "" && currentMessage === userData.lastMessage);
+  const isImageSpam = (currentAttachmentId !== null && currentAttachmentId === userData.lastAttachment);
+
+  if (isTextSpam || isImageSpam) {
     userData.count++;
+    // Ažuriramo podatke u mapi
     spamTracker.set(userId, userData);
   } else {
-    spamTracker.set(userId, { lastMessage: currentMessage, count: 1 });
+    // Ako je poslao nešto novo, resetujemo brojač na taj novi sadržaj
+    spamTracker.set(userId, { 
+      lastMessage: currentMessage, 
+      lastAttachment: currentAttachmentId, 
+      count: 1 
+    });
     return;
   }
 
+  // KAZNA
   if (userData.count >= 3) {
     try {
       await message.delete();
       const warning = await message.channel.send(
-        `${message.author}, **zabranjeno je spamovanje!** 🚨`
+        `${message.author}, **zabranjeno je spamovanje (tekst ili slike)!** 🚨`
       );
-      setTimeout(() => warning.delete(), 5000);
+      setTimeout(() => warning.delete().catch(() => {}), 5000);
+      
+      // Reset tracker nakon kazne
       spamTracker.delete(userId);
 
       // Loguj u kanal
       await sendToLog(message.guild, 'SPAM DETEKCIJA', message.author, {
-        "Poruka": currentMessage,
+        "Tip spama": isImageSpam ? "Slika/Fajl" : "Tekst",
+        "Sadržaj": currentMessage || "Priložena slika",
         "Ponavljanja": userData.count,
         "Kanal": message.channel.name
       });
@@ -302,7 +319,7 @@ client.on('guildMemberAdd', async member => {
       `🙋‍♂️ Ti si **${member.guild.memberCount}.** član discorda.\n\n` +
       `📕 Pročitajte pravila servera <#${config.welcome.rulesChannelId}>\n`)
     .setImage('https://cdn.discordapp.com/attachments/1389923297377914910/1389923383285907507/standard.gif?ex=68666286&is=68651106&hm=eb45021a6e3ac462837a9c028c51c5b1c1a7309e17d9ad13f35ac00f12f971d4&')
-    .setFooter({ text: 'youtube.com/@liveSake, @SAKE' })
+    .setFooter({ text: 'kick.com/livesake, @SAKE' })
     .setTimestamp();
 
   channel.send({ embeds: [embed] });
@@ -310,7 +327,7 @@ client.on('guildMemberAdd', async member => {
 
 // 3. AUTORESPONDER MODUL
 const autoresponses = {
-  "livesake": "📺 YouTube: https://youtube.com/@liveSake",
+  "livesake": "📺 Kick: https://kick.com/livesake",
   "ping": "pong! 🏓",
   "hello": "Hello there! 👋",
   "bok": "Bok! Kako mogu pomoći? 😊",
@@ -323,6 +340,7 @@ const autoresponses = {
   "invite": "🔗 Invite link za server: https://discord.gg/AnBRAHrqJc",
   "sake": "🧚‍♂️ Otkud sake na nebesima! 😄",
   "bot": "🤖 Ja sam Discord bot napravljen pomoću discord.js!",
+  "github": "🚀 Moj kod i najnovije verzije možeš preuzeti ovde: https://github.com/Saiyan699/MyWorld/releases",
   "help": [
     "Trebate li pomoć? 🤔",
     "Kako vam mogu pomoći danas? 😊",
@@ -354,7 +372,7 @@ client.on('messageCreate', async message => {
       "hvala": ["thx", "thanks", "tnx", "hvala ti"],
       "help": ["pomoć", "pomoc", "help", "pomoz", "upit"],
       "invite": ["link", "invite", "dodaj me", "poziv"],
-      "livesake": ["youtube", "yt", "kanal", "live sake"]
+      "livesake": ["youtube", "yt", "kanal", "live sake", "kick"]
     };
 
     for (const [key, triggers] of Object.entries(partialMatches)) {
